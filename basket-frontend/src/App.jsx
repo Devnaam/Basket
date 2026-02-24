@@ -5,7 +5,7 @@ import useAuthStore from '@/store/authStore';
 import useCartStore from '@/store/cartStore';
 import useSocket from '@/hooks/useSocket';
 
-// Pages
+// Customer pages
 import LoginPage from '@/pages/auth/LoginPage';
 import HomePage from '@/pages/customer/HomePage';
 import ProductsPage from '@/pages/customer/ProductsPage';
@@ -17,29 +17,36 @@ import OrderHistoryPage from '@/pages/customer/OrderHistoryPage';
 import ProfilePage from '@/pages/customer/ProfilePage';
 import NotFoundPage from '@/pages/NotFoundPage';
 
-// Route guard for protected pages
+// Admin pages
+import AdminLoginPage from '@/pages/admin/AdminLoginPage';
+import AdminLayout from '@/components/admin/AdminLayout';
+import DashboardPage from '@/pages/admin/DashboardPage';
+import AdminOrdersPage from '@/pages/admin/OrdersPage';
+import AdminRidersPage from '@/pages/admin/RidersPage';
+import AdminProductsPage from '@/pages/admin/ProductsPage';
+import AdminCouponsPage from '@/pages/admin/CouponsPage';
+import AdminUsersPage from '@/pages/admin/UsersPage';
+import AdminAnalyticsPage from '@/pages/admin/AnalyticsPage';
+
+// Route guards
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated } = useAuthStore();
   return isAuthenticated ? children : <Navigate to="/login" replace />;
 };
 
-// Route guard — redirect to home if already logged in
 const PublicRoute = ({ children }) => {
-  const { isAuthenticated } = useAuthStore();
-  return isAuthenticated ? <Navigate to="/" replace /> : children;
+  const { isAuthenticated, user } = useAuthStore();
+  if (isAuthenticated && user?.role === 'admin') return <Navigate to="/admin" replace />;
+  if (isAuthenticated && user?.role === 'customer') return <Navigate to="/" replace />;
+  return children;
 };
 
-// Socket initializer — runs at app level
-const SocketInitializer = () => {
-  useSocket(); // Establishes connection once when authenticated
-  return null;
-};
+const SocketInitializer = () => { useSocket(); return null; };
 
 const App = () => {
   const { isAuthenticated } = useAuthStore();
   const { fetchCartCount } = useCartStore();
 
-  // Fetch cart count once on app load if authenticated
   useEffect(() => {
     if (isAuthenticated) fetchCartCount();
   }, [isAuthenticated]);
@@ -51,19 +58,26 @@ const App = () => {
         position="top-center"
         toastOptions={{
           duration: 3000,
-          style: {
-            borderRadius: '12px',
-            fontSize: '14px',
-            fontWeight: '500',
-            padding: '12px 16px',
-          },
+          style: { borderRadius: '12px', fontSize: '14px', fontWeight: '500', padding: '12px 16px' },
           success: { iconTheme: { primary: '#16a34a', secondary: '#fff' } },
           error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
         }}
       />
       <Routes>
-        {/* Public */}
+        {/* Public auth */}
         <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+
+        {/* Admin */}
+        <Route path="/admin/login" element={<AdminLoginPage />} />
+        <Route path="/admin" element={<AdminLayout />}>
+          <Route index element={<DashboardPage />} />
+          <Route path="orders" element={<AdminOrdersPage />} />
+          <Route path="riders" element={<AdminRidersPage />} />
+          <Route path="products" element={<AdminProductsPage />} />
+          <Route path="coupons" element={<AdminCouponsPage />} />
+          <Route path="users" element={<AdminUsersPage />} />
+          <Route path="analytics" element={<AdminAnalyticsPage />} />
+        </Route>
 
         {/* Customer */}
         <Route path="/" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
@@ -75,7 +89,6 @@ const App = () => {
         <Route path="/orders/track/:orderId" element={<ProtectedRoute><OrderTrackingPage /></ProtectedRoute>} />
         <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
 
-        {/* 404 */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
