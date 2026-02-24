@@ -14,7 +14,7 @@ const useSocket = () => {
   useEffect(() => {
     if (!isAuthenticated || !accessToken) return;
 
-    // Reuse existing socket if already connected with same token
+    // Reuse existing socket if already connected
     if (globalSocket?.connected) {
       socketRef.current = globalSocket;
       return;
@@ -45,25 +45,43 @@ const useSocket = () => {
       updateTrackedOrderStatus(status);
       if (message) {
         const icons = {
-          packing: '📦',
+          packing:          '📦',
           out_for_delivery: '🏍️',
-          delivered: '✅',
-          cancelled: '❌',
+          delivered:        '✅',
+          cancelled:        '❌',
         };
         toast(message, { icon: icons[status] || '🛒', duration: 5000 });
       }
     });
 
-    // ── Rider GPS location ─────────────────────────────────────────
+    // ── Phase 9: Rider live GPS location ──────────────────────────
+    // Backend emitRiderLocation sends { lat, lng }
     socket.on('order:rider_location', ({ lat, lng }) => {
       updateRiderLocation(lat, lng);
+    });
+
+    // ── Phase 9: Delivery OTP received ────────────────────────────
+    socket.on('order:delivery_otp', ({ otp, orderId }) => {
+      toast(`🔑 Your delivery OTP: ${otp}`, {
+        duration: 60000,
+        id: `otp-${orderId}`,
+        style: {
+          fontFamily:    'monospace',
+          fontSize:      '22px',
+          fontWeight:    'bold',
+          letterSpacing: '6px',
+          background:    '#f0fdf4',
+          color:         '#166534',
+          border:        '1px solid #bbf7d0',
+        },
+      });
     });
 
     globalSocket = socket;
     socketRef.current = socket;
 
     return () => {
-      // Don't disconnect on unmount — keep alive for whole session
+      // Keep socket alive for the entire session
     };
   }, [isAuthenticated, accessToken]);
 
@@ -90,11 +108,11 @@ const useSocket = () => {
   }, []);
 
   return {
-    socket: socketRef.current,
+    socket:         socketRef.current,
     joinOrderRoom,
     leaveOrderRoom,
     disconnectSocket,
-    isConnected: socketRef.current?.connected || false,
+    isConnected:    socketRef.current?.connected || false,
   };
 };
 

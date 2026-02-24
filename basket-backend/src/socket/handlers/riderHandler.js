@@ -1,4 +1,4 @@
-const Rider = require('../../models/Rider');
+const Rider  = require('../../models/Rider');
 const { getRedisClient, REDIS_KEYS, REDIS_TTL } = require('../../config/redis');
 const {
   emitRiderStatusToAdmin,
@@ -17,10 +17,8 @@ module.exports = (io, socket) => {
       const rider = await Rider.findOne({ user: userId });
       if (!rider) return;
 
-      // Join dark store room to receive new order broadcasts
       socket.join(`darkstore:${rider.darkStore.toString()}`);
 
-      // Update status if not currently busy
       if (rider.status === 'offline') {
         rider.status = 'available';
         await rider.save();
@@ -47,9 +45,7 @@ module.exports = (io, socket) => {
         return;
       }
 
-      // Leave dark store room
       socket.leave(`darkstore:${rider.darkStore.toString()}`);
-
       rider.status = 'offline';
       await rider.save();
 
@@ -61,19 +57,20 @@ module.exports = (io, socket) => {
     }
   });
 
-  // ── Real-time GPS location update (every 5 seconds from app) ──────
-  // This replaces the REST POST /api/rider/location for active deliveries
-  socket.on('rider:location', async ({ lat, lng }) => {
+  // ── Real-time GPS location update ─────────────────────────────────
+  // ⚠️ Changed from 'rider:location' → 'rider:location_update'
+  //    to match Phase 8 useRiderSocket.js frontend emission
+  socket.on('rider:location_update', async ({ latitude, longitude }) => {
     try {
-      if (!lat || !lng) return;
+      if (!latitude || !longitude) return;
 
-      const latitude = parseFloat(lat);
-      const longitude = parseFloat(lng);
-      if (isNaN(latitude) || isNaN(longitude)) return;
+      const lat = parseFloat(latitude);
+      const lng = parseFloat(longitude);
+      if (isNaN(lat) || isNaN(lng)) return;
 
       const rider = await Rider.findOneAndUpdate(
         { user: userId },
-        { 'currentLocation.coordinates': [longitude, latitude] },
+        { 'currentLocation.coordinates': [lng, lat] },
         { new: true }
       ).select('_id currentOrder darkStore');
 
@@ -84,23 +81,23 @@ module.exports = (io, socket) => {
       await redis.setEx(
         REDIS_KEYS.riderLocation(rider._id.toString()),
         REDIS_TTL.RIDER_LOCATION,
-        JSON.stringify({ lat: latitude, lng: longitude, updatedAt: new Date().toISOString() })
+        JSON.stringify({ lat, lng, updatedAt: new Date().toISOString() })
       );
 
-      // If rider is on an active delivery — broadcast location to customer
+      // If on an active delivery — broadcast to customer
       if (rider.currentOrder) {
         emitRiderLocation(
           rider.currentOrder.toString(),
           rider._id.toString(),
-          { lat: latitude, lng: longitude }
+          { lat, lng }   // ← useSocket.js listens for { lat, lng }
         );
       }
-    } catch (err) {
-      // Silent fail — location updates are high-frequency, don't log each one
+    } catch (_) {
+      // Silent fail — location is high-frequency
     }
   });
 
-  // ── Rider accepts a new order via socket (alternative to REST) ─────
+  // ── Rider accepts order via socket ────────────────────────────────
   socket.on('rider:accept_order', async ({ orderId }) => {
     try {
       if (!orderId) return;
@@ -116,7 +113,6 @@ module.exports = (io, socket) => {
         return;
       }
 
-      // Atomic update — only succeeds if status is still 'placed' and no rider assigned
       const order = await Order.findOneAndUpdate(
         { _id: orderId, status: 'placed', rider: null },
         { rider: rider._id, status: 'packing' },
@@ -131,25 +127,22 @@ module.exports = (io, socket) => {
         return;
       }
 
-      // Cancel auto-assignment timer
       cancelAutoAssignment(orderId);
 
-      // Update rider
       rider.status = 'busy';
       rider.currentOrder = order._id;
       await rider.save();
 
-      // Notify other riders that this order is taken
       emitOrderTakenToRiders(rider.darkStore.toString(), order._id.toString());
 
       socket.emit('order:accepted', {
-        orderId: order.orderId,
-        _id: order._id,
-        customer: { name: order.user.name, phone: order.user.phone },
-        items: order.items,
+        orderId:         order.orderId,
+        _id:             order._id,
+        customer:        { name: order.user.name, phone: order.user.phone },
+        items:           order.items,
         deliveryAddress: order.deliveryAddress,
-        grandTotal: order.grandTotal,
-        paymentMethod: order.paymentMethod,
+        grandTotal:      order.grandTotal,
+        paymentMethod:   order.paymentMethod,
       });
 
       logger.info(`Rider ${name} accepted order ${order.orderId} via socket`);
@@ -158,7 +151,7 @@ module.exports = (io, socket) => {
     }
   });
 
-  // ── Auto-rejoin dark store room on reconnect ───────────────────────
+  // ── Auto-rejoin dark store room on reconnect ──────────────────────
   socket.on('rider:rejoin', async () => {
     try {
       const rider = await Rider.findOne({ user: userId });
@@ -166,6 +159,6 @@ module.exports = (io, socket) => {
         socket.join(`darkstore:${rider.darkStore.toString()}`);
         socket.emit('rider:rejoined', { darkStore: rider.darkStore.toString() });
       }
-    } catch (err) {}
+    } catch (_) {}
   });
 };

@@ -5,6 +5,7 @@ const useOrderStore = create((set, get) => ({
   orders: [],
   activeOrder: null,
   trackedOrder: null,
+  riderLocation: null,      // ← Phase 9: separate live GPS state { lat, lng }
   isLoading: false,
   pagination: null,
 
@@ -19,7 +20,7 @@ const useOrderStore = create((set, get) => ({
       set({ isLoading: false });
       return {
         success: false,
-        error: err.response?.data?.error || 'Failed to place order',
+        error:   err.response?.data?.error || 'Failed to place order',
         details: err.response?.data?.details,
       };
     }
@@ -31,13 +32,8 @@ const useOrderStore = create((set, get) => ({
     try {
       const params = new URLSearchParams({ page, limit: 10 });
       if (status) params.append('status', status);
-
       const { data } = await api.get(`/orders?${params}`);
-      set({
-        orders: data.data,
-        pagination: data.pagination,
-        isLoading: false,
-      });
+      set({ orders: data.data, pagination: data.pagination, isLoading: false });
     } catch (_) {
       set({ isLoading: false });
     }
@@ -70,7 +66,6 @@ const useOrderStore = create((set, get) => ({
   cancelOrder: async (id, reason) => {
     try {
       const { data } = await api.put(`/orders/${id}/cancel`, { reason });
-      // Update in local list
       set((state) => ({
         orders: state.orders.map((o) =>
           o._id === id ? { ...o, status: 'cancelled' } : o
@@ -101,8 +96,13 @@ const useOrderStore = create((set, get) => ({
     }));
   },
 
-  // ── Update rider location in tracked order ────────────────────────
+  // ── Phase 9: Update live rider GPS location ───────────────────────
+  // Called by useSocket on `order:rider_location` with { lat, lng }
   updateRiderLocation: (lat, lng) => {
+    // 1. Update the separate riderLocation state used by LiveTrackingMap
+    set({ riderLocation: { lat, lng } });
+
+    // 2. Also embed into trackedOrder.rider for backwards compatibility
     set((state) => ({
       trackedOrder: state.trackedOrder
         ? {
@@ -116,7 +116,8 @@ const useOrderStore = create((set, get) => ({
     }));
   },
 
-  clearTrackedOrder: () => set({ trackedOrder: null }),
+  // ── Clear on unmount / navigation ────────────────────────────────
+  clearTrackedOrder: () => set({ trackedOrder: null, riderLocation: null }),
 }));
 
 export default useOrderStore;
