@@ -70,12 +70,12 @@ exports.sendOTPHandler = asyncHandler(async (req, res) => {
   }
 
   res.status(200).json({
-    success: true,
-    message: `OTP sent to +91${cleanPhone}. Valid for 5 minutes.`,
-    expiresIn: REDIS_TTL.OTP,
-    // Expose OTP in response only during development
-    ...(process.env.NODE_ENV === 'development' && { otp }),
-  });
+  success:   true,
+  message:   'OTP sent successfully',
+  expiresIn: 300,
+  // In dev mode → return OTP in response so you can test without SMS
+  ...(process.env.NODE_ENV === 'development' && { devOtp: otp }),
+});
 });
 
 // ────────────────────────────────────────────────────────────────────

@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate, Link }           from 'react-router-dom';
+import { useNavigate }                 from 'react-router-dom';
 import useAuthStore from '@/store/authStore';
 import Button       from '@/components/ui/Button';
 import Input        from '@/components/ui/Input';
 import toast        from 'react-hot-toast';
 
-const LoginPage = () => {
+const RiderLoginPage = () => {
   const navigate = useNavigate();
   const { sendOTP, verifyOTP, isLoading, devOtp } = useAuthStore();
 
@@ -17,7 +17,7 @@ const LoginPage = () => {
   const [resendTimer, setResendTimer] = useState(0);
   const devToastRef = useRef(null);
 
-  // DEV: auto-fill OTP when it arrives in store
+  // DEV: auto-fill OTP
   useEffect(() => {
     if (devOtp && step === 'otp') {
       setOtp(devOtp);
@@ -25,7 +25,7 @@ const LoginPage = () => {
       devToastRef.current = toast(
         <span>
           <strong>DEV MODE 🔐</strong><br />
-          OTP: <strong className="text-green-700 text-lg tracking-widest">{devOtp}</strong>
+          OTP: <strong className="text-orange-700 text-lg tracking-widest">{devOtp}</strong>
         </span>,
         { duration: 60000, icon: '🧪' }
       );
@@ -45,7 +45,7 @@ const LoginPage = () => {
   const handleSendOTP = async () => {
     const cleaned = phone.replace(/\D/g, '');
     if (!/^[6-9]\d{9}$/.test(cleaned)) {
-      setPhoneError('Enter a valid 10-digit Indian mobile number');
+      setPhoneError('Enter a valid 10-digit mobile number');
       return;
     }
     setPhoneError('');
@@ -53,7 +53,7 @@ const LoginPage = () => {
     if (result.success) {
       setStep('otp');
       startResendTimer();
-      if (!result.devOtp) toast.success('OTP sent successfully!');
+      if (!result.devOtp) toast.success('OTP sent!');
     } else {
       toast.error(result.error);
     }
@@ -68,26 +68,18 @@ const LoginPage = () => {
     if (result.success) {
       if (devToastRef.current) toast.dismiss(devToastRef.current);
 
-      // Block admin/rider from using customer login
-      if (result.role === 'admin') {
-        toast.error('Admin? Please use the Admin login page.');
-        navigate('/admin/login', { replace: true });
-        return;
-      }
-      if (result.role === 'rider') {
-        toast.error('Rider? Please use the Rider login page.');
-        navigate('/rider/login', { replace: true });
+      // Only riders allowed here
+      if (result.role !== 'rider') {
+        toast.error('This login is for riders only. Contact your admin to get registered.');
+        // Log them out since wrong portal
+        useAuthStore.getState().logout();
+        setStep('phone');
+        setOtp('');
         return;
       }
 
-      // New customer → setup profile first
-      if (result.isNewUser) {
-        toast.success('Welcome to Basket! 🛒 Let\'s set up your profile.');
-        navigate('/setup-profile', { replace: true });
-      } else {
-        toast.success('Welcome back! 👋');
-        navigate('/', { replace: true });
-      }
+      toast.success('Welcome back, Rider! 🏍️');
+      navigate('/rider', { replace: true });
     } else {
       setOtpError(result.error);
     }
@@ -108,20 +100,32 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col">
 
-      {/* Header */}
-      <div className="bg-basket-green px-6 pt-16 pb-12 text-white">
-        <h1 className="text-4xl font-extrabold mb-1">🛒 Basket</h1>
-        <p className="text-green-100 text-base">Groceries in 20 minutes</p>
+      {/* Header — orange theme for rider */}
+      <div className="bg-orange-500 px-6 pt-16 pb-12 text-white">
+        <div className="flex items-center gap-3 mb-2">
+          <span className="text-4xl">🏍️</span>
+          <h1 className="text-3xl font-extrabold">Basket Rider</h1>
+        </div>
+        <p className="text-orange-100 text-base">Deliver. Earn. Repeat.</p>
       </div>
 
       <div className="flex-1 px-6 pt-8 pb-6 max-w-sm mx-auto w-full">
+
+        {/* Info box — riders pre-registered by admin */}
+        <div className="bg-orange-50 border border-orange-100 rounded-2xl px-4 py-3 mb-6 flex gap-3">
+          <span className="text-xl flex-shrink-0">ℹ️</span>
+          <p className="text-xs text-orange-700">
+            Rider accounts are created by the admin. If you can't log in,
+            contact your store manager to get registered.
+          </p>
+        </div>
 
         {/* STEP 1 — Phone */}
         {step === 'phone' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-1">Login / Sign Up</h2>
-              <p className="text-gray-500 text-sm">Enter your mobile number to continue</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">Rider Login</h2>
+              <p className="text-gray-500 text-sm">Enter your registered mobile number</p>
             </div>
 
             <Input
@@ -145,28 +149,10 @@ const LoginPage = () => {
               isLoading={isLoading}
               onClick={handleSendOTP}
               disabled={phone.length !== 10}
+              className="bg-orange-500 hover:bg-orange-600"
             >
               Send OTP
             </Button>
-
-            {/* Links to other portals */}
-            <div className="pt-4 border-t border-gray-100 space-y-2 text-center">
-              <p className="text-xs text-gray-400">Other portals</p>
-              <div className="flex justify-center gap-4">
-                <Link
-                  to="/admin/login"
-                  className="text-xs text-gray-400 hover:text-basket-green underline"
-                >
-                  Admin Login
-                </Link>
-                <Link
-                  to="/rider/login"
-                  className="text-xs text-gray-400 hover:text-basket-green underline"
-                >
-                  Rider Login
-                </Link>
-              </div>
-            </div>
           </div>
         )}
 
@@ -180,7 +166,7 @@ const LoginPage = () => {
                 <span className="font-semibold text-gray-800">+91 {phone}</span>{' '}
                 <button
                   onClick={() => { setStep('phone'); setOtp(''); setOtpError(''); }}
-                  className="text-basket-green underline text-xs ml-1"
+                  className="text-orange-500 underline text-xs ml-1"
                 >
                   Change
                 </button>
@@ -189,13 +175,13 @@ const LoginPage = () => {
 
             {/* DEV banner */}
             {devOtp && (
-              <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center gap-3">
+              <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 flex items-center gap-3">
                 <span className="text-xl">🧪</span>
                 <div>
-                  <p className="text-xs font-bold text-green-700 uppercase tracking-wide">
+                  <p className="text-xs font-bold text-orange-700 uppercase tracking-wide">
                     Dev Mode — SMS Bypassed
                   </p>
-                  <p className="text-green-800 font-mono font-extrabold text-2xl tracking-widest mt-0.5">
+                  <p className="text-orange-800 font-mono font-extrabold text-2xl tracking-widest mt-0.5">
                     {devOtp}
                   </p>
                 </div>
@@ -222,15 +208,16 @@ const LoginPage = () => {
               isLoading={isLoading}
               onClick={handleVerifyOTP}
               disabled={otp.length !== 6}
+              className="bg-orange-500 hover:bg-orange-600"
             >
               Verify & Continue
             </Button>
 
             <div className="text-center text-sm text-gray-500">
               {resendTimer > 0 ? (
-                <span>Resend in <strong className="text-gray-700">{resendTimer}s</strong></span>
+                <span>Resend in <strong>{resendTimer}s</strong></span>
               ) : (
-                <button onClick={handleResendOTP} className="text-basket-green font-semibold">
+                <button onClick={handleResendOTP} className="text-orange-500 font-semibold">
                   Resend OTP
                 </button>
               )}
@@ -242,4 +229,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default RiderLoginPage;

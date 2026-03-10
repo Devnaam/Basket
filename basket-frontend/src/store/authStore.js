@@ -1,24 +1,35 @@
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import api from '@/api/axios';
+import { create }   from 'zustand';
+import { persist }  from 'zustand/middleware';
+import api          from '@/api/axios';
 
 const useAuthStore = create(
   persist(
     (set, get) => ({
-      user: null,
-      accessToken: null,
-      refreshToken: null,
+      user:            null,
+      accessToken:     null,
+      refreshToken:    null,
       isAuthenticated: false,
-      isLoading: false,
-      error: null,
+      isLoading:       false,
+      error:           null,
+      devOtp:          null, // ← Phase 10 dev helper
 
-      // ── Send OTP ──────────────────────────────────────────────────
+      // ── Send OTP ────────────────────────────────────────────────
       sendOTP: async (phone) => {
-        set({ isLoading: true, error: null });
+        set({ isLoading: true, error: null, devOtp: null });
         try {
           const { data } = await api.post('/auth/send-otp', { phone });
+
+          // DEV MODE: backend returns devOtp when NODE_ENV=development
+          if (data.devOtp) {
+            set({ devOtp: data.devOtp });
+            console.info(
+              `%c🔐 DEV OTP for ${phone}: ${data.devOtp}`,
+              'color: #16a34a; font-size: 18px; font-weight: bold; background: #f0fdf4; padding: 4px 8px; border-radius: 4px;'
+            );
+          }
+
           set({ isLoading: false });
-          return { success: true, message: data.message };
+          return { success: true, message: data.message, devOtp: data.devOtp || null };
         } catch (err) {
           const error = err.response?.data?.error || 'Failed to send OTP';
           set({ isLoading: false, error });
@@ -26,7 +37,7 @@ const useAuthStore = create(
         }
       },
 
-      // ── Verify OTP & Login ────────────────────────────────────────
+      // ── Verify OTP & Login ───────────────────────────────────────
       verifyOTP: async (phone, otp) => {
         set({ isLoading: true, error: null });
         try {
@@ -41,11 +52,12 @@ const useAuthStore = create(
             accessToken,
             refreshToken,
             isAuthenticated: true,
-            isLoading: false,
-            error: null,
+            isLoading:       false,
+            error:           null,
+            devOtp:          null, // clear after login
           });
 
-          return { success: true, isNewUser: user.isNewUser };
+          return { success: true, isNewUser: user.isNewUser, role: user.role };
         } catch (err) {
           const error = err.response?.data?.error || 'OTP verification failed';
           set({ isLoading: false, error });
@@ -53,28 +65,27 @@ const useAuthStore = create(
         }
       },
 
-      // ── Logout ────────────────────────────────────────────────────
+      // ── Logout ───────────────────────────────────────────────────
       logout: async () => {
         try {
           await api.post('/auth/logout');
-        } catch (_) {
-          // Silent — logout even if API call fails
-        }
+        } catch (_) {}
         localStorage.removeItem('accessToken');
         localStorage.removeItem('refreshToken');
         set({
-          user: null,
-          accessToken: null,
-          refreshToken: null,
+          user:            null,
+          accessToken:     null,
+          refreshToken:    null,
           isAuthenticated: false,
-          error: null,
+          error:           null,
+          devOtp:          null,
         });
       },
 
-      // ── Update profile ────────────────────────────────────────────
-      updateProfile: async (data) => {
+      // ── Update profile ───────────────────────────────────────────
+      updateProfile: async (profileData) => {
         try {
-          const res = await api.put('/auth/profile', data);
+          const res = await api.put('/auth/profile', profileData);
           set({ user: res.data.data });
           return { success: true };
         } catch (err) {
@@ -82,7 +93,7 @@ const useAuthStore = create(
         }
       },
 
-      // ── Add address ───────────────────────────────────────────────
+      // ── Add address ──────────────────────────────────────────────
       addAddress: async (addressData) => {
         try {
           const res = await api.post('/auth/address', addressData);
@@ -95,7 +106,7 @@ const useAuthStore = create(
         }
       },
 
-      // ── Delete address ────────────────────────────────────────────
+      // ── Delete address ───────────────────────────────────────────
       deleteAddress: async (addressId) => {
         try {
           const res = await api.delete(`/auth/address/${addressId}`);
@@ -108,7 +119,7 @@ const useAuthStore = create(
         }
       },
 
-      // ── Refresh user data ─────────────────────────────────────────
+      // ── Refresh user data ────────────────────────────────────────
       refreshUser: async () => {
         try {
           const { data } = await api.get('/auth/me');
@@ -120,11 +131,11 @@ const useAuthStore = create(
     }),
     {
       name: 'basket-auth',
-      // Only persist essential fields — not loading/error states
+      // Only persist essential fields
       partialize: (state) => ({
-        user: state.user,
-        accessToken: state.accessToken,
-        refreshToken: state.refreshToken,
+        user:            state.user,
+        accessToken:     state.accessToken,
+        refreshToken:    state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
     }
