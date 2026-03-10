@@ -7,7 +7,7 @@ import toast        from 'react-hot-toast';
 
 const RiderLoginPage = () => {
   const navigate = useNavigate();
-  const { sendOTP, verifyOTP, isLoading, devOtp } = useAuthStore();
+  const { sendOTP, verifyOTP, logout, isLoading, devOtp } = useAuthStore();
 
   const [step,        setStep]        = useState('phone');
   const [phone,       setPhone]       = useState('');
@@ -17,7 +17,6 @@ const RiderLoginPage = () => {
   const [resendTimer, setResendTimer] = useState(0);
   const devToastRef = useRef(null);
 
-  // DEV: auto-fill OTP
   useEffect(() => {
     if (devOtp && step === 'otp') {
       setOtp(devOtp);
@@ -68,11 +67,10 @@ const RiderLoginPage = () => {
     if (result.success) {
       if (devToastRef.current) toast.dismiss(devToastRef.current);
 
-      // Only riders allowed here
+      // Only riders allowed on this page
       if (result.role !== 'rider') {
-        toast.error('This login is for riders only. Contact your admin to get registered.');
-        // Log them out since wrong portal
-        useAuthStore.getState().logout();
+        toast.error('This portal is for riders only. Contact your admin.');
+        logout();
         setStep('phone');
         setOtp('');
         return;
@@ -100,7 +98,7 @@ const RiderLoginPage = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col">
 
-      {/* Header — orange theme for rider */}
+      {/* Header — orange for rider */}
       <div className="bg-orange-500 px-6 pt-16 pb-12 text-white">
         <div className="flex items-center gap-3 mb-2">
           <span className="text-4xl">🏍️</span>
@@ -111,10 +109,10 @@ const RiderLoginPage = () => {
 
       <div className="flex-1 px-6 pt-8 pb-6 max-w-sm mx-auto w-full">
 
-        {/* Info box — riders pre-registered by admin */}
+        {/* Info notice */}
         <div className="bg-orange-50 border border-orange-100 rounded-2xl px-4 py-3 mb-6 flex gap-3">
           <span className="text-xl flex-shrink-0">ℹ️</span>
-          <p className="text-xs text-orange-700">
+          <p className="text-xs text-orange-700 leading-relaxed">
             Rider accounts are created by the admin. If you can't log in,
             contact your store manager to get registered.
           </p>
@@ -149,7 +147,7 @@ const RiderLoginPage = () => {
               isLoading={isLoading}
               onClick={handleSendOTP}
               disabled={phone.length !== 10}
-              className="bg-orange-500 hover:bg-orange-600"
+              className="!bg-orange-500 hover:!bg-orange-600"
             >
               Send OTP
             </Button>
@@ -160,7 +158,7 @@ const RiderLoginPage = () => {
         {step === 'otp' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-1">Verify OTP</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">Enter OTP</h2>
               <p className="text-gray-500 text-sm">
                 Sent to{' '}
                 <span className="font-semibold text-gray-800">+91 {phone}</span>{' '}
@@ -173,14 +171,11 @@ const RiderLoginPage = () => {
               </p>
             </div>
 
-            {/* DEV banner */}
             {devOtp && (
               <div className="bg-orange-50 border border-orange-200 rounded-xl px-4 py-3 flex items-center gap-3">
                 <span className="text-xl">🧪</span>
                 <div>
-                  <p className="text-xs font-bold text-orange-700 uppercase tracking-wide">
-                    Dev Mode — SMS Bypassed
-                  </p>
+                  <p className="text-xs font-bold text-orange-700 uppercase tracking-wide">Dev Mode</p>
                   <p className="text-orange-800 font-mono font-extrabold text-2xl tracking-widest mt-0.5">
                     {devOtp}
                   </p>
@@ -208,7 +203,7 @@ const RiderLoginPage = () => {
               isLoading={isLoading}
               onClick={handleVerifyOTP}
               disabled={otp.length !== 6}
-              className="bg-orange-500 hover:bg-orange-600"
+              className="!bg-orange-500 hover:!bg-orange-600"
             >
               Verify & Continue
             </Button>

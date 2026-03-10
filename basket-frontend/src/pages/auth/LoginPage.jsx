@@ -17,7 +17,6 @@ const LoginPage = () => {
   const [resendTimer, setResendTimer] = useState(0);
   const devToastRef = useRef(null);
 
-  // DEV: auto-fill OTP when it arrives in store
   useEffect(() => {
     if (devOtp && step === 'otp') {
       setOtp(devOtp);
@@ -68,21 +67,21 @@ const LoginPage = () => {
     if (result.success) {
       if (devToastRef.current) toast.dismiss(devToastRef.current);
 
-      // Block admin/rider from using customer login
+      // ── Block wrong role from using customer login ──────────────
       if (result.role === 'admin') {
-        toast.error('Admin? Please use the Admin login page.');
+        toast.error('Please use the Admin login page.');
         navigate('/admin/login', { replace: true });
         return;
       }
       if (result.role === 'rider') {
-        toast.error('Rider? Please use the Rider login page.');
+        toast.error('Please use the Rider login page.');
         navigate('/rider/login', { replace: true });
         return;
       }
 
-      // New customer → setup profile first
+      // ── New user → setup profile first ─────────────────────────
       if (result.isNewUser) {
-        toast.success('Welcome to Basket! 🛒 Let\'s set up your profile.');
+        toast.success("Welcome to Basket! Let's set up your profile 🛒");
         navigate('/setup-profile', { replace: true });
       } else {
         toast.success('Welcome back! 👋');
@@ -108,7 +107,7 @@ const LoginPage = () => {
   return (
     <div className="min-h-screen bg-white flex flex-col">
 
-      {/* Header */}
+      {/* ── Header ─────────────────────────────────────────────── */}
       <div className="bg-basket-green px-6 pt-16 pb-12 text-white">
         <h1 className="text-4xl font-extrabold mb-1">🛒 Basket</h1>
         <p className="text-green-100 text-base">Groceries in 20 minutes</p>
@@ -116,12 +115,14 @@ const LoginPage = () => {
 
       <div className="flex-1 px-6 pt-8 pb-6 max-w-sm mx-auto w-full">
 
-        {/* STEP 1 — Phone */}
+        {/* ── STEP 1: Phone ──────────────────────────────────────── */}
         {step === 'phone' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-1">Login / Sign Up</h2>
-              <p className="text-gray-500 text-sm">Enter your mobile number to continue</p>
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">Login / Register</h2>
+              <p className="text-gray-500 text-sm">
+                New or returning — just enter your mobile number
+              </p>
             </div>
 
             <Input
@@ -149,20 +150,14 @@ const LoginPage = () => {
               Send OTP
             </Button>
 
-            {/* Links to other portals */}
-            <div className="pt-4 border-t border-gray-100 space-y-2 text-center">
+            {/* Other portals */}
+            <div className="pt-4 border-t border-gray-100 text-center space-y-2">
               <p className="text-xs text-gray-400">Other portals</p>
-              <div className="flex justify-center gap-4">
-                <Link
-                  to="/admin/login"
-                  className="text-xs text-gray-400 hover:text-basket-green underline"
-                >
+              <div className="flex justify-center gap-6">
+                <Link to="/admin/login" className="text-xs text-gray-400 hover:text-basket-green underline">
                   Admin Login
                 </Link>
-                <Link
-                  to="/rider/login"
-                  className="text-xs text-gray-400 hover:text-basket-green underline"
-                >
+                <Link to="/rider/login" className="text-xs text-gray-400 hover:text-basket-green underline">
                   Rider Login
                 </Link>
               </div>
@@ -170,11 +165,11 @@ const LoginPage = () => {
           </div>
         )}
 
-        {/* STEP 2 — OTP */}
+        {/* ── STEP 2: OTP ────────────────────────────────────────── */}
         {step === 'otp' && (
           <div className="space-y-6">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 mb-1">Verify OTP</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-1">Enter OTP</h2>
               <p className="text-gray-500 text-sm">
                 Sent to{' '}
                 <span className="font-semibold text-gray-800">+91 {phone}</span>{' '}
@@ -187,14 +182,12 @@ const LoginPage = () => {
               </p>
             </div>
 
-            {/* DEV banner */}
+            {/* DEV OTP banner */}
             {devOtp && (
               <div className="bg-green-50 border border-green-200 rounded-xl px-4 py-3 flex items-center gap-3">
                 <span className="text-xl">🧪</span>
                 <div>
-                  <p className="text-xs font-bold text-green-700 uppercase tracking-wide">
-                    Dev Mode — SMS Bypassed
-                  </p>
+                  <p className="text-xs font-bold text-green-700 uppercase tracking-wide">Dev Mode</p>
                   <p className="text-green-800 font-mono font-extrabold text-2xl tracking-widest mt-0.5">
                     {devOtp}
                   </p>
@@ -228,7 +221,7 @@ const LoginPage = () => {
 
             <div className="text-center text-sm text-gray-500">
               {resendTimer > 0 ? (
-                <span>Resend in <strong className="text-gray-700">{resendTimer}s</strong></span>
+                <span>Resend OTP in <strong className="text-gray-700">{resendTimer}s</strong></span>
               ) : (
                 <button onClick={handleResendOTP} className="text-basket-green font-semibold">
                   Resend OTP

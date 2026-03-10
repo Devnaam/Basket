@@ -42,7 +42,7 @@ const ProductsPage = () => {
     setIsLoading(true);
     try {
       const [sortField, sortOrder] = sortBy.split(':');
-      const params = new URLSearchParams({ page: pageNum, limit: 20, sortBy: sortField, sortOrder });
+      const params = new URLSearchParams({ page: pageNum, limit: 20, sort: sortField, order: sortOrder });
       if (debouncedSearch) params.append('search', debouncedSearch);
       if (activeCategory !== 'All') params.append('category', activeCategory);
 
