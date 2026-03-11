@@ -1,4 +1,6 @@
-require('dotenv').config({ path: require('path').join(__dirname, '../../.env') });
+require('dotenv').config({
+  path: require('path').join(__dirname, '../../.env'),
+});
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const Rider = require('../models/Rider');
@@ -12,7 +14,8 @@ const logger = require('../utils/logger');
 const darkStoresData = [
   {
     name: 'Basket Dark Store — Knowledge Park II',
-    address: 'Shop No. 12, Alpha Commercial Belt, Knowledge Park II, Greater Noida, UP 201306',
+    address:
+      'Shop No. 12, Alpha Commercial Belt, Knowledge Park II, Greater Noida, UP 201306',
     location: { type: 'Point', coordinates: [77.4538, 28.4744] },
     coverageRadius: 3000,
     isOperational: true,
@@ -34,35 +37,395 @@ const darkStoresData = [
 
 const getProductsData = (storeId1, storeId2) => [
   // ── Vegetables ──────────────────────────────────────────────────
-  { name: 'Fresh Tomatoes', category: 'Vegetables', subcategory: 'Salad Vegetables', brand: 'Farm Fresh', price: 40, mrp: 55, unit: 'kg', quantity: 1, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/tomatoes.jpg'], description: 'Fresh, ripe red tomatoes sourced daily', stock: 100, lowStockThreshold: 15, darkStore: storeId1, tags: ['fresh', 'organic'] },
-  { name: 'Onions', category: 'Vegetables', subcategory: 'Root Vegetables', brand: 'Farm Fresh', price: 30, mrp: 40, unit: 'kg', quantity: 1, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/onions.jpg'], description: 'Fresh Indian onions', stock: 150, darkStore: storeId1, tags: ['fresh'] },
-  { name: 'Potatoes', category: 'Vegetables', subcategory: 'Root Vegetables', brand: 'Farm Fresh', price: 25, mrp: 35, unit: 'kg', quantity: 1, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/potatoes.jpg'], description: 'Premium quality potatoes', stock: 200, darkStore: storeId1, tags: ['fresh'] },
-  { name: 'Spinach', category: 'Vegetables', subcategory: 'Leafy Greens', brand: 'Green Valley', price: 20, mrp: 30, unit: 'pack', quantity: 200, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/spinach.jpg'], description: 'Fresh spinach leaves — 200g pack', stock: 60, darkStore: storeId2, tags: ['fresh', 'organic'] },
+  {
+    name: 'Fresh Tomatoes',
+    category: 'Vegetables',
+    subcategory: 'Salad Vegetables',
+    brand: 'Farm Fresh',
+    price: 40,
+    mrp: 55,
+    unit: 'kg',
+    quantity: 1,
+    images: [
+      'https://images.unsplash.com/photo-1546094096-0df4bcaaa337?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Fresh, ripe red tomatoes sourced daily',
+    stock: 100,
+    lowStockThreshold: 15,
+    darkStore: storeId1,
+    tags: ['fresh', 'organic'],
+  },
+  {
+    name: 'Onions',
+    category: 'Vegetables',
+    subcategory: 'Root Vegetables',
+    brand: 'Farm Fresh',
+    price: 30,
+    mrp: 40,
+    unit: 'kg',
+    quantity: 1,
+    images: [
+      'https://images.unsplash.com/photo-1508747703725-719777637510?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Fresh Indian onions',
+    stock: 150,
+    darkStore: storeId1,
+    tags: ['fresh'],
+  },
+  {
+    name: 'Potatoes',
+    category: 'Vegetables',
+    subcategory: 'Root Vegetables',
+    brand: 'Farm Fresh',
+    price: 25,
+    mrp: 35,
+    unit: 'kg',
+    quantity: 1,
+    images: [
+      'https://images.unsplash.com/photo-1518977676405-d54e27710491?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Premium quality potatoes',
+    stock: 200,
+    darkStore: storeId1,
+    tags: ['fresh'],
+  },
+  {
+    name: 'Spinach',
+    category: 'Vegetables',
+    subcategory: 'Leafy Greens',
+    brand: 'Green Valley',
+    price: 20,
+    mrp: 30,
+    unit: 'pack',
+    quantity: 200,
+    images: [
+      'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Fresh spinach leaves — 200g pack',
+    stock: 60,
+    darkStore: storeId2,
+    tags: ['fresh', 'organic'],
+  },
+
   // ── Fruits ──────────────────────────────────────────────────────
-  { name: 'Bananas', category: 'Fruits', subcategory: 'Tropical Fruits', brand: 'Farm Fresh', price: 45, mrp: 60, unit: 'dozen', quantity: 12, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/bananas.jpg'], description: 'Fresh yellow bananas — 1 dozen', stock: 80, darkStore: storeId1, tags: ['fresh'] },
-  { name: 'Apples — Shimla', category: 'Fruits', subcategory: 'Seasonal Fruits', brand: 'Himalayan Harvest', price: 150, mrp: 200, unit: 'kg', quantity: 1, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/apples.jpg'], description: 'Premium Shimla apples, crisp and sweet', stock: 50, darkStore: storeId2, tags: ['premium', 'seasonal'] },
+  {
+    name: 'Bananas',
+    category: 'Fruits',
+    subcategory: 'Tropical Fruits',
+    brand: 'Farm Fresh',
+    price: 45,
+    mrp: 60,
+    unit: 'dozen',
+    quantity: 12,
+    images: [
+      'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Fresh yellow bananas — 1 dozen',
+    stock: 80,
+    darkStore: storeId1,
+    tags: ['fresh'],
+  },
+  {
+    name: 'Apples — Shimla',
+    category: 'Fruits',
+    subcategory: 'Seasonal Fruits',
+    brand: 'Himalayan Harvest',
+    price: 150,
+    mrp: 200,
+    unit: 'kg',
+    quantity: 1,
+    images: [
+      'https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Premium Shimla apples, crisp and sweet',
+    stock: 50,
+    darkStore: storeId2,
+    tags: ['premium', 'seasonal'],
+  },
+
   // ── Dairy ───────────────────────────────────────────────────────
-  { name: 'Amul Milk — Full Cream', category: 'Dairy', subcategory: 'Milk', brand: 'Amul', price: 31, mrp: 31, unit: 'ltr', quantity: 500, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/milk.jpg'], description: 'Amul full cream milk 500ml', stock: 200, darkStore: storeId1 },
-  { name: 'Amul Butter', category: 'Dairy', subcategory: 'Butter & Cheese', brand: 'Amul', price: 55, mrp: 60, unit: 'g', quantity: 100, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/butter.jpg'], description: 'Amul pasteurized butter 100g', stock: 120, darkStore: storeId1 },
-  { name: 'Mother Dairy Curd', category: 'Dairy', subcategory: 'Curd & Yogurt', brand: 'Mother Dairy', price: 45, mrp: 50, unit: 'g', quantity: 400, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/curd.jpg'], description: 'Fresh dahi 400g cup', stock: 90, darkStore: storeId2 },
-  { name: 'Amul Cheese Slices', category: 'Dairy', subcategory: 'Butter & Cheese', brand: 'Amul', price: 110, mrp: 125, unit: 'pack', quantity: 200, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/cheese.jpg'], description: 'Amul processed cheese slices 200g', stock: 65, darkStore: storeId1 },
+  {
+    name: 'Amul Milk — Full Cream',
+    category: 'Dairy',
+    subcategory: 'Milk',
+    brand: 'Amul',
+    price: 31,
+    mrp: 31,
+    unit: 'ltr',
+    quantity: 500,
+    images: [
+      'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Amul full cream milk 500ml',
+    stock: 200,
+    darkStore: storeId1,
+  },
+  {
+    name: 'Amul Butter',
+    category: 'Dairy',
+    subcategory: 'Butter & Cheese',
+    brand: 'Amul',
+    price: 55,
+    mrp: 60,
+    unit: 'g',
+    quantity: 100,
+    images: [
+      'https://images.unsplash.com/photo-1589985270826-4b7bb135bc9d?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Amul pasteurized butter 100g',
+    stock: 120,
+    darkStore: storeId1,
+  },
+  {
+    name: 'Mother Dairy Curd',
+    category: 'Dairy',
+    subcategory: 'Curd & Yogurt',
+    brand: 'Mother Dairy',
+    price: 45,
+    mrp: 50,
+    unit: 'g',
+    quantity: 400,
+    images: [
+      'https://images.unsplash.com/photo-1488477181228-c84ca5b9c1d7?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Fresh dahi 400g cup',
+    stock: 90,
+    darkStore: storeId2,
+  },
+  {
+    name: 'Amul Cheese Slices',
+    category: 'Dairy',
+    subcategory: 'Butter & Cheese',
+    brand: 'Amul',
+    price: 110,
+    mrp: 125,
+    unit: 'pack',
+    quantity: 200,
+    images: [
+      'https://images.unsplash.com/photo-1486297678162-eb2a19b0a32d?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Amul processed cheese slices 200g',
+    stock: 65,
+    darkStore: storeId1,
+  },
+
   // ── Groceries ───────────────────────────────────────────────────
-  { name: 'Aashirvaad Atta — Whole Wheat', category: 'Groceries', subcategory: 'Flour & Grains', brand: 'Aashirvaad', price: 280, mrp: 320, unit: 'kg', quantity: 5, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/atta.jpg'], description: 'Premium whole wheat atta 5kg', stock: 80, darkStore: storeId1 },
-  { name: 'India Gate Basmati Rice', category: 'Groceries', subcategory: 'Rice & Pulses', brand: 'India Gate', price: 350, mrp: 400, unit: 'kg', quantity: 5, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/rice.jpg'], description: 'Classic basmati rice 5kg', stock: 60, darkStore: storeId1 },
-  { name: 'Tata Salt', category: 'Groceries', subcategory: 'Spices & Salt', brand: 'Tata', price: 25, mrp: 28, unit: 'kg', quantity: 1, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/salt.jpg'], description: 'Iodized table salt 1kg', stock: 300, darkStore: storeId2 },
-  { name: 'Fortune Refined Oil', category: 'Groceries', subcategory: 'Oils & Ghee', brand: 'Fortune', price: 145, mrp: 165, unit: 'ltr', quantity: 1, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/oil.jpg'], description: 'Fortune refined sunflower oil 1L', stock: 90, darkStore: storeId1 },
+  {
+    name: 'Aashirvaad Atta — Whole Wheat',
+    category: 'Groceries',
+    subcategory: 'Flour & Grains',
+    brand: 'Aashirvaad',
+    price: 280,
+    mrp: 320,
+    unit: 'kg',
+    quantity: 5,
+    images: [
+      'https://images.unsplash.com/photo-1574323347407-f5e1ad6d020b?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Premium whole wheat atta 5kg',
+    stock: 80,
+    darkStore: storeId1,
+  },
+  {
+    name: 'India Gate Basmati Rice',
+    category: 'Groceries',
+    subcategory: 'Rice & Pulses',
+    brand: 'India Gate',
+    price: 350,
+    mrp: 400,
+    unit: 'kg',
+    quantity: 5,
+    images: [
+      'https://images.unsplash.com/photo-1536304993881-ff86e0c9b8aa?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Classic basmati rice 5kg',
+    stock: 60,
+    darkStore: storeId1,
+  },
+  {
+    name: 'Tata Salt',
+    category: 'Groceries',
+    subcategory: 'Spices & Salt',
+    brand: 'Tata',
+    price: 25,
+    mrp: 28,
+    unit: 'kg',
+    quantity: 1,
+    images: [
+      'https://images.unsplash.com/photo-1568600891597-9c849b4af84c?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Iodized table salt 1kg',
+    stock: 300,
+    darkStore: storeId2,
+  },
+  {
+    name: 'Fortune Refined Oil',
+    category: 'Groceries',
+    subcategory: 'Oils & Ghee',
+    brand: 'Fortune',
+    price: 145,
+    mrp: 165,
+    unit: 'ltr',
+    quantity: 1,
+    images: [
+      'https://images.unsplash.com/photo-1474979266404-7eaacbcd87c5?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Fortune refined sunflower oil 1L',
+    stock: 90,
+    darkStore: storeId1,
+  },
+
   // ── Snacks ──────────────────────────────────────────────────────
-  { name: "Lays Classic Salted", category: 'Snacks', subcategory: 'Chips', brand: "Lay's", price: 20, mrp: 20, unit: 'g', quantity: 52, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/chips.jpg'], description: "Lay's classic salted chips 52g", stock: 200, darkStore: storeId1 },
-  { name: 'Maggi 2-Minute Noodles', category: 'Snacks', subcategory: 'Instant Noodles', brand: 'Maggi', price: 14, mrp: 14, unit: 'g', quantity: 70, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/maggi.jpg'], description: 'Masala flavour instant noodles 70g', stock: 400, darkStore: storeId1, tags: ['bestseller'] },
-  { name: 'Britannia Good Day Cookies', category: 'Snacks', subcategory: 'Biscuits & Cookies', brand: 'Britannia', price: 30, mrp: 35, unit: 'g', quantity: 150, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/cookies.jpg'], description: 'Butter cookies 150g pack', stock: 150, darkStore: storeId2 },
+  {
+    name: 'Lays Classic Salted',
+    category: 'Snacks',
+    subcategory: 'Chips',
+    brand: "Lay's",
+    price: 20,
+    mrp: 20,
+    unit: 'g',
+    quantity: 52,
+    images: [
+      'https://images.unsplash.com/photo-1566478989037-eec170784d0b?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: "Lay's classic salted chips 52g",
+    stock: 200,
+    darkStore: storeId1,
+  },
+  {
+    name: 'Maggi 2-Minute Noodles',
+    category: 'Snacks',
+    subcategory: 'Instant Noodles',
+    brand: 'Maggi',
+    price: 14,
+    mrp: 14,
+    unit: 'g',
+    quantity: 70,
+    images: [
+      'https://images.unsplash.com/photo-1569718212165-3a8278d5f624?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Masala flavour instant noodles 70g',
+    stock: 400,
+    darkStore: storeId1,
+    tags: ['bestseller'],
+  },
+  {
+    name: 'Britannia Good Day Cookies',
+    category: 'Snacks',
+    subcategory: 'Biscuits & Cookies',
+    brand: 'Britannia',
+    price: 30,
+    mrp: 35,
+    unit: 'g',
+    quantity: 150,
+    images: [
+      'https://images.unsplash.com/photo-1499636136210-6f4ee915583e?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Butter cookies 150g pack',
+    stock: 150,
+    darkStore: storeId2,
+  },
+
   // ── Beverages ───────────────────────────────────────────────────
-  { name: 'Coca-Cola', category: 'Beverages', subcategory: 'Soft Drinks', brand: 'Coca-Cola', price: 40, mrp: 45, unit: 'ml', quantity: 750, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/coke.jpg'], description: 'Coca-Cola 750ml bottle', stock: 120, darkStore: storeId1 },
-  { name: 'Red Bull Energy Drink', category: 'Beverages', subcategory: 'Energy Drinks', brand: 'Red Bull', price: 115, mrp: 130, unit: 'ml', quantity: 250, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/redbull.jpg'], description: 'Red Bull original 250ml can', stock: 80, darkStore: storeId2, tags: ['premium'] },
-  { name: 'Tata Tea Gold', category: 'Beverages', subcategory: 'Tea & Coffee', brand: 'Tata Tea', price: 260, mrp: 290, unit: 'g', quantity: 500, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/tea.jpg'], description: 'Premium blend tea 500g', stock: 70, darkStore: storeId1 },
+  {
+    name: 'Coca-Cola',
+    category: 'Beverages',
+    subcategory: 'Soft Drinks',
+    brand: 'Coca-Cola',
+    price: 40,
+    mrp: 45,
+    unit: 'ml',
+    quantity: 750,
+    images: [
+      'https://images.unsplash.com/photo-1554866585-cd94860890b7?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Coca-Cola 750ml bottle',
+    stock: 120,
+    darkStore: storeId1,
+  },
+  {
+    name: 'Red Bull Energy Drink',
+    category: 'Beverages',
+    subcategory: 'Energy Drinks',
+    brand: 'Red Bull',
+    price: 115,
+    mrp: 130,
+    unit: 'ml',
+    quantity: 250,
+    images: [
+      'https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Red Bull original 250ml can',
+    stock: 80,
+    darkStore: storeId2,
+    tags: ['premium'],
+  },
+  {
+    name: 'Tata Tea Gold',
+    category: 'Beverages',
+    subcategory: 'Tea & Coffee',
+    brand: 'Tata Tea',
+    price: 260,
+    mrp: 290,
+    unit: 'g',
+    quantity: 500,
+    images: [
+      'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Premium blend tea 500g',
+    stock: 70,
+    darkStore: storeId1,
+  },
+
   // ── Personal Care ────────────────────────────────────────────────
-  { name: 'Dove Soap Bar', category: 'Personal Care', subcategory: 'Bath & Body', brand: 'Dove', price: 55, mrp: 65, unit: 'g', quantity: 100, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/soap.jpg'], description: 'Dove cream beauty bathing bar 100g', stock: 200, darkStore: storeId1 },
-  { name: 'Colgate Total Toothpaste', category: 'Personal Care', subcategory: 'Oral Care', brand: 'Colgate', price: 95, mrp: 110, unit: 'g', quantity: 150, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/toothpaste.jpg'], description: 'Colgate Total 12 — 150g', stock: 120, darkStore: storeId2 },
-  { name: 'Head & Shoulders Shampoo', category: 'Personal Care', subcategory: 'Hair Care', brand: "Head & Shoulders", price: 185, mrp: 210, unit: 'ml', quantity: 340, images: ['https://res.cloudinary.com/demo/image/upload/v1/samples/food/shampoo.jpg'], description: 'Anti-dandruff shampoo 340ml', stock: 80, darkStore: storeId1 },
+  {
+    name: 'Dove Soap Bar',
+    category: 'Personal Care',
+    subcategory: 'Bath & Body',
+    brand: 'Dove',
+    price: 55,
+    mrp: 65,
+    unit: 'g',
+    quantity: 100,
+    images: [
+      'https://images.unsplash.com/photo-1571781926291-c477ebfd024b?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Dove cream beauty bathing bar 100g',
+    stock: 200,
+    darkStore: storeId1,
+  },
+  {
+    name: 'Colgate Total Toothpaste',
+    category: 'Personal Care',
+    subcategory: 'Oral Care',
+    brand: 'Colgate',
+    price: 95,
+    mrp: 110,
+    unit: 'g',
+    quantity: 150,
+    images: [
+      'https://images.unsplash.com/photo-1559591935-00bce78c4370?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Colgate Total 12 — 150g',
+    stock: 120,
+    darkStore: storeId2,
+  },
+  {
+    name: 'Head & Shoulders Shampoo',
+    category: 'Personal Care',
+    subcategory: 'Hair Care',
+    brand: 'Head & Shoulders',
+    price: 185,
+    mrp: 210,
+    unit: 'ml',
+    quantity: 340,
+    images: [
+      'https://images.unsplash.com/photo-1526045612212-70caf35c14df?w=400&h=400&fit=crop&auto=format',
+    ],
+    description: 'Anti-dandruff shampoo 340ml',
+    stock: 80,
+    darkStore: storeId1,
+  },
 ];
 
 const couponData = [
@@ -92,9 +455,9 @@ const couponData = [
     discountType: 'flat',
     discountValue: 25,
     minOrderValue: 0,
-    description: 'Free delivery — waive ₹25 delivery fee',
     validFrom: new Date(),
     validUntil: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
+    description: 'Free delivery — waive ₹25 delivery fee',
   },
 ];
 
@@ -105,7 +468,6 @@ const seedDatabase = async () => {
     logger.info('✅ Connected to MongoDB for seeding');
 
     if (process.argv[2] === '--destroy') {
-      // Wipe all collections
       await Promise.all([
         User.deleteMany({}),
         Rider.deleteMany({}),
@@ -146,7 +508,11 @@ const seedDatabase = async () => {
     // ── 3. Create Test Customer ──────────────────────────────────────
     const existingCustomer = await User.findOne({ phone: '9876543210' });
     if (!existingCustomer) {
-      await User.create({ name: 'Test Customer', phone: '9876543210', role: 'customer' });
+      await User.create({
+        name: 'Test Customer',
+        phone: '9876543210',
+        role: 'customer',
+      });
       logger.info('✅ Test customer created → phone: 9876543210');
     }
 
@@ -163,8 +529,9 @@ const seedDatabase = async () => {
         vehicleNumber: 'UP16AB1234',
         vehicleType: 'bike',
         darkStore: store1._id,
-        idProof: 'https://res.cloudinary.com/demo/image/upload/v1/samples/id-proof.jpg',
-        photo: 'https://res.cloudinary.com/demo/image/upload/v1/samples/people/smiling-man.jpg',
+        // ✅ Fixed: using reliable placeholder URLs instead of broken Cloudinary demo
+        idProof: 'https://placehold.co/400x300/e2e8f0/475569?text=ID+Proof',
+        photo: 'https://placehold.co/200x200/bbf7d0/15803d?text=Rider+Photo',
       });
       logger.info('✅ Test rider created → phone: 9111111111');
     }

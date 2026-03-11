@@ -9,17 +9,19 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { sendOTP, verifyOTP, isLoading, devOtp } = useAuthStore();
 
-  const [step,        setStep]        = useState('phone');
+  const [step,        setStep]        = useState('phone'); // 'phone' | 'otp'
   const [phone,       setPhone]       = useState('');
   const [otp,         setOtp]         = useState('');
   const [phoneError,  setPhoneError]  = useState('');
   const [otpError,    setOtpError]    = useState('');
   const [resendTimer, setResendTimer] = useState(0);
-  const devToastRef = useRef(null);
+  const devToastRef = useRef(null); // track dev toast to dismiss later
 
+  // ── Auto-fill OTP when devOtp arrives from store ─────────────────
   useEffect(() => {
     if (devOtp && step === 'otp') {
       setOtp(devOtp);
+      // Dismiss previous dev toast if any
       if (devToastRef.current) toast.dismiss(devToastRef.current);
       devToastRef.current = toast(
         <span>
@@ -31,6 +33,7 @@ const LoginPage = () => {
     }
   }, [devOtp, step]);
 
+  // ── Countdown timer for resend button ────────────────────────────
   const startResendTimer = () => {
     setResendTimer(60);
     const interval = setInterval(() => {
@@ -41,6 +44,7 @@ const LoginPage = () => {
     }, 1000);
   };
 
+  // ── Send OTP ──────────────────────────────────────────────────────
   const handleSendOTP = async () => {
     const cleaned = phone.replace(/\D/g, '');
     if (!/^[6-9]\d{9}$/.test(cleaned)) {
@@ -48,7 +52,9 @@ const LoginPage = () => {
       return;
     }
     setPhoneError('');
+    
     const result = await sendOTP(cleaned);
+    
     if (result.success) {
       setStep('otp');
       startResendTimer();
@@ -58,6 +64,7 @@ const LoginPage = () => {
     }
   };
 
+  // ── Verify OTP ────────────────────────────────────────────────────
   const handleVerifyOTP = async () => {
     if (otp.length !== 6) { setOtpError('Enter the 6-digit OTP'); return; }
     setOtpError('');
@@ -67,7 +74,7 @@ const LoginPage = () => {
     if (result.success) {
       if (devToastRef.current) toast.dismiss(devToastRef.current);
 
-      // ── Block wrong role from using customer login ──────────────
+      // Block wrong role from using customer login
       if (result.role === 'admin') {
         toast.error('Please use the Admin login page.');
         navigate('/admin/login', { replace: true });
@@ -79,19 +86,14 @@ const LoginPage = () => {
         return;
       }
 
-      // ── New user → setup profile first ─────────────────────────
-      if (result.isNewUser) {
-        toast.success("Welcome to Basket! Let's set up your profile 🛒");
-        navigate('/setup-profile', { replace: true });
-      } else {
-        toast.success('Welcome back! 👋');
-        navigate('/', { replace: true });
-      }
+      toast.success('Welcome to Basket! 🛒');
+      navigate('/', { replace: true });
     } else {
       setOtpError(result.error);
     }
   };
 
+  // ── Resend OTP ────────────────────────────────────────────────────
   const handleResendOTP = async () => {
     if (resendTimer > 0) return;
     const result = await sendOTP(phone.replace(/\D/g, ''));

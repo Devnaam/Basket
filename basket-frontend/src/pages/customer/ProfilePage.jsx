@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, MapPin, Plus, Trash2 } from 'lucide-react';
-import Layout from '@/components/layout/Layout';
 import Button from '@/components/ui/Button';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -62,7 +61,7 @@ const ProfilePage = () => {
 
   return (
     <>
-      <Layout>
+      
         <div className="px-4 py-4 space-y-4">
 
           {/* ── Profile header card ───────────────────────────── */}
@@ -161,7 +160,7 @@ const ProfilePage = () => {
 
           <div className="h-4" />
         </div>
-      </Layout>
+      
 
       {/* ── Edit name modal ───────────────────────────────── */}
       <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="Edit Name">

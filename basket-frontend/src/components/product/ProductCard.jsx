@@ -51,7 +51,8 @@ const ProductCard = ({ product }) => {
             alt={product.name}
             className="w-full h-full object-cover"
             onError={(e) => {
-              e.target.src = 'https://placehold.co/200x200?text=No+Image';
+              e.target.onerror = null; // ✅ prevent infinite loop
+              e.target.src = `https://placehold.co/200x200/f0fdf4/16a34a?text=${encodeURIComponent(product.name?.split(' ')[0] || 'Item')}`;
             }}
           />
         </div>
